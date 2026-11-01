@@ -30,9 +30,12 @@ PORT                   Puerto priorizado por proveedores como Render
 AULAVIVA_ALLOWED_ORIGIN Origen permitido por CORS
 ```
 
-En Render se recomienda `AULAVIVA_DB_PATH=/var/data/aulaviva.db` con un
-Persistent Disk montado en `/var/data`. Sin ese disco, el filesystem local
-puede perderse al reiniciar o desplegar el servicio.
+En Render gratuito puede usarse `AULAVIVA_DB_PATH=aulaviva.db`, pero el
+filesystem no es persistente: la base puede perderse al reiniciar o desplegar
+el servicio. Esta configuración solo es adecuada para una demostración
+académica con datos ficticios. No se debe utilizar para datos reales sin
+contratar almacenamiento persistente o migrar posteriormente a una base de
+datos administrada.
 
 El endpoint `GET /api/courses` expone los cursos demo para el formulario del
 frontend. En desarrollo se permite CORS desde `http://localhost:4200`.

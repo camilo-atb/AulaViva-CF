@@ -134,23 +134,23 @@ El archivo [render.yaml](render.yaml) define un Web Service Go con:
 - `rootDir: backend`.
 - Build: `go build -o bin/aulaviva ./cmd/api`.
 - Start: `./bin/aulaviva`.
-- SQLite en `/var/data/aulaviva.db`.
-- Persistent Disk montado en `/var/data`.
-
-El Persistent Disk requiere un Web Service con plan de cómputo pago. La
-configuración usa `plan: starter`; Render muestra actualmente ese plan desde
-`$7/mes`, sujeto a cambios del proveedor. El disco se cobra aparte, actualmente
-`$0.25 por GB/mes`. No se debe crear el servicio ni contratar el plan sin
-revisar los precios vigentes en la cuenta.
+- Plan `free`.
+- SQLite en `aulaviva.db`.
 
 Variables requeridas en Render:
 
 ```text
-AULAVIVA_DB_PATH=/var/data/aulaviva.db
+AULAVIVA_DB_PATH=aulaviva.db
 AULAVIVA_ALLOWED_ORIGIN=https://<dominio-de-vercel>
 ```
 
 Render inyecta `PORT`; el backend lo prioriza sobre `AULAVIVA_PORT`.
+
+El plan gratuito no ofrece almacenamiento persistente para SQLite. La base
+puede reiniciarse o perderse durante un redeploy, por lo que esta configuración
+es apropiada únicamente para una demostración académica con datos ficticios.
+No se deben guardar datos reales ni presentar este despliegue como una
+instancia de producción con persistencia garantizada.
 
 ### Frontend en Vercel
 

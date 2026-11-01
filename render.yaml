@@ -2,16 +2,12 @@ services:
   - type: web
     name: aulaviva-api
     runtime: go
-    plan: starter
+    plan: free
     rootDir: backend
     buildCommand: go build -o bin/aulaviva ./cmd/api
     startCommand: ./bin/aulaviva
     envVars:
       - key: AULAVIVA_DB_PATH
-        value: /var/data/aulaviva.db
+        value: aulaviva.db
       - key: AULAVIVA_ALLOWED_ORIGIN
         sync: false
-    disk:
-      name: aulaviva-data
-      mountPath: /var/data
-      sizeGB: 1
