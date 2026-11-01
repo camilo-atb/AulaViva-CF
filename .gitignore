@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Angular build and tooling
+dist/
+.angular/
+out-tsc/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files and caches
+*.tmp
+*.temp
+*.log
+.cache/
+tmp/
+temp/
+
+# IDE and OS files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
