@@ -30,6 +30,8 @@ func Error(w http.ResponseWriter, err error) {
 		status, code, message = http.StatusBadRequest, "invalid_input", "La información enviada no es válida."
 	case errors.Is(err, domainerrors.ErrNotFound):
 		status, code, message = http.StatusNotFound, "not_found", "El recurso solicitado no existe."
+	case errors.Is(err, domainerrors.ErrDuplicate):
+		status, code, message = http.StatusConflict, "authorized_person_duplicate", "Ya existe una persona con ese documento para este estudiante."
 	case errors.Is(err, domainerrors.ErrAlreadyAnswered), errors.Is(err, domainerrors.ErrConflict):
 		status, code, message = http.StatusConflict, "authorization_already_answered", "La solicitud ya tiene una respuesta."
 	}

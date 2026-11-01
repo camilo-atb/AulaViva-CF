@@ -11,6 +11,30 @@ export interface Student {
   fullName: string;
 }
 
+export type DocumentType = 'CC' | 'TI' | 'CE' | 'PASSPORT' | 'OTHER';
+
+export interface AuthorizedPerson {
+  id: number;
+  studentId: number;
+  fullName: string;
+  documentType: DocumentType;
+  documentNumber: string;
+  relationship: string;
+  phone: string;
+}
+
+export interface StudentDetail extends Student {
+  authorizedPeople: AuthorizedPerson[];
+}
+
+export interface AuthorizedPersonInput {
+  fullName: string;
+  documentType: DocumentType;
+  documentNumber: string;
+  relationship: string;
+  phone: string;
+}
+
 export interface Authorization {
   id: number;
   eventId: number;

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -31,10 +32,14 @@ func testServer(t *testing.T) (http.Handler, func()) {
 	courses := sqliterepositories.NewCourseRepository(db)
 	events := sqliterepositories.NewEventRepository(db)
 	authorizations := sqliterepositories.NewAuthorizationRepository(db)
+	students := sqliterepositories.NewStudentRepository(db)
+	people := sqliterepositories.NewAuthorizedPersonRepository(db)
 	handler := routes.New(
 		handlers.NewEventHandler(services.NewEventService(courses, events)),
 		handlers.NewAuthorizationHandler(services.NewAuthorizationService(authorizations)),
 		handlers.NewCourseHandler(services.NewCourseService(courses)),
+		handlers.NewStudentHandler(services.NewStudentService(students, people)),
+		handlers.NewAuthorizedPersonHandler(services.NewAuthorizedPersonService(students, people)),
 	)
 	return handler, func() { db.Close(); os.Remove(path) }
 }
@@ -112,6 +117,73 @@ func TestHTTPValidationAndNotFound(t *testing.T) {
 	handler.ServeHTTP(notFoundRecorder, notFound)
 	if notFoundRecorder.Code != http.StatusNotFound {
 		t.Fatalf("not found status = %d, want %d", notFoundRecorder.Code, http.StatusNotFound)
+	}
+}
+
+func TestAuthorizedPeopleCRUDAndSearch(t *testing.T) {
+	handler, cleanup := testServer(t)
+	defer cleanup()
+
+	list := httptest.NewRecorder()
+	handler.ServeHTTP(list, httptest.NewRequest(http.MethodGet, "/api/students?search=Sofía", nil))
+	if list.Code != http.StatusOK {
+		t.Fatalf("student search status = %d", list.Code)
+	}
+	var students []struct {
+		ID               int   `json:"id"`
+		AuthorizedPeople []any `json:"authorizedPeople"`
+	}
+	decode(t, list, &students)
+	if len(students) != 1 || len(students[0].AuthorizedPeople) != 0 {
+		t.Fatalf("student search result = %+v", students)
+	}
+
+	create := httptest.NewRequest(http.MethodPost, "/api/students/1/authorized-people",
+		strings.NewReader(`{"fullName":"Laura Gómez","documentType":"CC","documentNumber":"123456789","relationship":"Tía","phone":"+57 300 555 0101"}`))
+	create.Header.Set("Content-Type", "application/json")
+	createdResponse := httptest.NewRecorder()
+	handler.ServeHTTP(createdResponse, create)
+	if createdResponse.Code != http.StatusCreated {
+		t.Fatalf("person create status = %d, body = %s", createdResponse.Code, createdResponse.Body.String())
+	}
+	var person struct {
+		ID int `json:"id"`
+	}
+	decode(t, createdResponse, &person)
+
+	duplicate := httptest.NewRecorder()
+	handler.ServeHTTP(duplicate, httptest.NewRequest(http.MethodPost, "/api/students/1/authorized-people",
+		strings.NewReader(`{"fullName":"Laura Gómez","documentType":"CC","documentNumber":"123456789","relationship":"Tía","phone":"3005550101"}`)))
+	if duplicate.Code != http.StatusConflict {
+		t.Fatalf("duplicate status = %d, want %d", duplicate.Code, http.StatusConflict)
+	}
+
+	update := httptest.NewRequest(http.MethodPut, "/api/authorized-people/"+strconv.Itoa(person.ID),
+		strings.NewReader(`{"fullName":"Laura Gómez Pérez","documentType":"CC","documentNumber":"123456789","relationship":"Madre","phone":"300 555 0102"}`))
+	update.Header.Set("Content-Type", "application/json")
+	updatedResponse := httptest.NewRecorder()
+	handler.ServeHTTP(updatedResponse, update)
+	if updatedResponse.Code != http.StatusOK {
+		t.Fatalf("person update status = %d", updatedResponse.Code)
+	}
+
+	deleteResponse := httptest.NewRecorder()
+	handler.ServeHTTP(deleteResponse, httptest.NewRequest(http.MethodDelete, "/api/authorized-people/"+strconv.Itoa(person.ID), nil))
+	if deleteResponse.Code != http.StatusNoContent {
+		t.Fatalf("person delete status = %d", deleteResponse.Code)
+	}
+
+	detail := httptest.NewRecorder()
+	handler.ServeHTTP(detail, httptest.NewRequest(http.MethodGet, "/api/students/1", nil))
+	if detail.Code != http.StatusOK {
+		t.Fatalf("student detail status = %d", detail.Code)
+	}
+	var student struct {
+		AuthorizedPeople []any `json:"authorizedPeople"`
+	}
+	decode(t, detail, &student)
+	if len(student.AuthorizedPeople) != 0 {
+		t.Fatalf("authorized people after delete = %d", len(student.AuthorizedPeople))
 	}
 }
 

@@ -11,6 +11,9 @@ import (
 //go:embed migrations/001_initial.sql
 var initialMigration string
 
+//go:embed migrations/002_authorized_people.sql
+var authorizedPeopleMigration string
+
 func Open(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -28,7 +31,10 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 }
 
 func migrate(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, initialMigration)
+	if _, err := db.ExecContext(ctx, initialMigration); err != nil {
+		return err
+	}
+	_, err := db.ExecContext(ctx, authorizedPeopleMigration)
 	return err
 }
 

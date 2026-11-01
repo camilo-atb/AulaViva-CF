@@ -21,6 +21,19 @@ go run ./cmd/api
 
 La primera ejecución crea el esquema y carga cursos y alumnos ficticios.
 
+Variables de entorno disponibles:
+
+```text
+AULAVIVA_DB_PATH       Ruta de SQLite (por defecto: aulaviva.db)
+AULAVIVA_PORT          Puerto local alternativo (por defecto: 8080)
+PORT                   Puerto priorizado por proveedores como Render
+AULAVIVA_ALLOWED_ORIGIN Origen permitido por CORS
+```
+
+En Render se recomienda `AULAVIVA_DB_PATH=/var/data/aulaviva.db` con un
+Persistent Disk montado en `/var/data`. Sin ese disco, el filesystem local
+puede perderse al reiniciar o desplegar el servicio.
+
 El endpoint `GET /api/courses` expone los cursos demo para el formulario del
 frontend. En desarrollo se permite CORS desde `http://localhost:4200`.
 
@@ -32,6 +45,16 @@ Endpoints principales:
 - `GET /api/events/{id}`
 - `GET /api/requests/{token}`
 - `POST /api/requests/{token}/response`
+- `GET /api/students?search={name}`
+- `GET /api/students/{id}`
+- `GET /api/students/{id}/authorized-people`
+- `POST /api/students/{id}/authorized-people`
+- `PUT /api/authorized-people/{id}`
+- `DELETE /api/authorized-people/{id}`
+
+Las personas autorizadas utilizan los tipos de documento `CC`, `TI`, `CE`,
+`PASSPORT` y `OTHER`. La funcionalidad usa datos ficticios y no verifica
+identidad legal.
 
 ## Pruebas
 
@@ -42,3 +65,8 @@ go test ./...
 La implementación está separada en `domain`, `application`,
 `infrastructure/persistence/sqlite` y `presentation/http`. Las dependencias se
 ensamblan manualmente desde `cmd/api/main.go`.
+
+El despliegue reproducible está descrito en
+[../render.yaml](../render.yaml). El backend continúa sin autenticación y solo
+debe exponerse públicamente con datos ficticios hasta incorporar protección
+administrativa.

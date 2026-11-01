@@ -58,27 +58,31 @@ backend/
 │   │   │   ├── authorization.go
 │   │   │   ├── course.go
 │   │   │   ├── event.go
-│   │   │   └── student.go
+│   │   │   ├── student.go
+│   │   │   └── authorized_person.go
 │   │   ├── errors/
 │   │   │   └── errors.go
 │   │   └── repositories/
 │   │       ├── authorization_repository.go
 │   │       ├── course_repository.go
 │   │       ├── event_repository.go
-│   │       └── student_repository.go
+│   │       ├── student_repository.go
+│   │       └── authorized_person_repository.go
 │   ├── application/
 │   │   ├── dto/
 │   │   │   ├── authorization.go
 │   │   │   └── event.go
 │   │   └── services/
 │   │       ├── authorization_service.go
-│   │       └── event_service.go
+│   │       ├── event_service.go
+│   │       ├── student_service.go
+│   │       └── authorized_person_service.go
 │   ├── infrastructure/
 │   │   └── persistence/
 │   │       └── sqlite/
 │   │           ├── migrations/
-│   │           ├── connection.go
-│   │           ├── schema.go
+│   │           │   └── 002_authorized_people.sql
+│   │           ├── database.go
 │   │           └── repositories/
 │   └── presentation/
 │       └── http/
@@ -113,11 +117,15 @@ frontend/
     │   │   ├── dashboard/
     │   │   │   ├── components/
     │   │   │   └── pages/
-    │   │   └── events/
-    │   │       ├── components/
-    │   │       ├── models/
-    │   │       ├── pages/
-    │   │       └── services/
+    │   │   ├── events/
+    │   │   │   ├── components/
+    │   │   │   ├── models/
+    │   │   │   ├── pages/
+    │   │   │   └── services/
+    │   │   └── authorized-people/
+    │   │       ├── authorized-person-form.component.ts
+    │   │       ├── student-detail.component.ts
+    │   │       └── student-list.component.ts
     │   ├── layout/
     │   │   ├── admin-layout/
     │   │   ├── guardian-layout/
@@ -155,10 +163,10 @@ los casos de uso requieran capacidades distintas.
 ### Application
 
 Coordina los casos de uso de crear evento, generar solicitudes, consultar
-resultados y registrar respuestas. Recibe `context.Context`, valida
-invariantes de negocio, transforma DTO de entrada y salida y depende de
-interfaces del dominio. No construye respuestas HTTP ni contiene consultas
-SQL.
+resultados, registrar respuestas y gestionar estudiantes y personas
+autorizadas. Recibe `context.Context`, valida invariantes de negocio,
+transforma DTO de entrada y salida y depende de interfaces del dominio. No
+construye respuestas HTTP ni contiene consultas SQL.
 
 La creación del evento y sus solicitudes debe recibir una capacidad
 transaccional del repositorio o un servicio de persistencia equivalente, de
@@ -186,7 +194,9 @@ reutilizables presentan datos y emiten eventos de UI. Los servicios de cada
 feature encapsulan `HttpClient`, DTO y estados de carga/error; `core` aloja
 configuración y preocupaciones transversales; `layout` contiene navegación y
 estructura. Formularios complejos usan Reactive Forms y el estado local
-derivado puede usar Signals.
+derivado puede usar Signals. La feature `authorized-people` contiene el
+listado de estudiantes, la ficha, el formulario y las acciones CRUD de
+personas autorizadas; usa `StudentService` para encapsular el acceso HTTP.
 
 ## 5. Reglas de implementación Go
 
@@ -268,6 +278,12 @@ depende de comparar textos técnicos.
 | `GET` | `/api/courses` | Lista los cursos demo disponibles para crear eventos. |
 | `GET` | `/api/requests/{requestToken}` | Vista individual del acudiente. |
 | `POST` | `/api/requests/{requestToken}/response` | Registra una respuesta. |
+| `GET` | `/api/students?search={name}` | Lista y busca estudiantes. |
+| `GET` | `/api/students/{studentId}` | Detalle del estudiante con `authorizedPeople`. |
+| `GET` | `/api/students/{studentId}/authorized-people` | Lista la colección del estudiante. |
+| `POST` | `/api/students/{studentId}/authorized-people` | Crea una persona autorizada. |
+| `PUT` | `/api/authorized-people/{authorizedPersonId}` | Actualiza sus datos. |
+| `DELETE` | `/api/authorized-people/{authorizedPersonId}` | Elimina el registro. |
 
 Los estados de autorización compartidos por ambos módulos son exactamente
 `pending`, `authorized` y `not_authorized`.
@@ -279,6 +295,7 @@ courses 1 --- N students
 courses 1 --- N events
 events  1 --- N authorizations
 students 1 --- N authorizations
+students 1 --- N authorized_people
 ```
 
 Tablas y restricciones:
@@ -291,6 +308,11 @@ Tablas y restricciones:
 - `authorizations`: `id` como clave primaria, `event_id` y `student_id`
   obligatorios con claves foráneas, `request_token` opaco y único, `status`
   restringido a los tres estados, y `responded_at` nulo solo para `pending`.
+- `authorized_people`: `id` como clave primaria, `student_id` obligatorio con
+  clave foránea a `students`, nombre, tipo y número de documento, relación y
+  teléfono obligatorios. `document_type` se restringe a `CC`, `TI`, `CE`,
+  `PASSPORT` y `OTHER`, y la combinación
+  `(student_id, document_type, document_number)` es única.
 
 La tabla `authorizations` tiene `UNIQUE(event_id, student_id)` y un índice por
 `event_id`, otro por `student_id` y otro por `status` cuando las consultas lo

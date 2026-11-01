@@ -23,6 +23,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           <a routerLink="/events" routerLinkActive="active">
             <span class="nav-glyph">02</span> Eventos
           </a>
+          <a routerLink="/students" routerLinkActive="active">
+            <span class="nav-glyph">03</span> Recogida
+          </a>
         </nav>
         <div class="sidebar-footer">
           <span class="status-dot"></span>
@@ -32,7 +35,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
       <main class="main-content">
         <header class="mobile-header">
           <a class="brand" routerLink="/dashboard"><span class="brand-mark">av</span><span><strong>Aula</strong>Viva</span></a>
-          <a class="mobile-action" routerLink="/events">Eventos</a>
+          <a class="mobile-action" routerLink="/students">Recogida</a>
         </header>
         <router-outlet />
       </main>

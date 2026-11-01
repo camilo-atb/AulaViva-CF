@@ -21,11 +21,13 @@ consolidado de autorizaciones.
 - Portal web para acudientes.
 - Respuestas de autorizar o no autorizar.
 - Consulta de estados pendientes, autorizados y no autorizados.
+- Consulta de estudiantes y gestión de personas autorizadas para recogerlos.
 - Persistencia con SQLite.
 
 No incluye integración real con WhatsApp, calificaciones, tareas, aplicación
-móvil, notificaciones automáticas, roles avanzados ni registro de personas
-autorizadas para recoger alumnos.
+móvil, notificaciones automáticas, roles avanzados ni autenticación. El
+registro de personas autorizadas utiliza datos ficticios y no representa una
+verificación legal de identidad.
 
 ## Stack tecnológico
 
@@ -42,7 +44,8 @@ autorizadas para recoger alumnos.
 ├── docs/
 │   └── architecture.md
 ├── specs/
-│   └── gestion-autorizaciones.md
+│   ├── gestion-autorizaciones.md
+│   └── gestion-personas-autorizadas.md
 ├── .github/
 │   └── skills/
 │       └── brand-design/
@@ -50,6 +53,7 @@ autorizadas para recoger alumnos.
 ├── frontend/
 │   ├── src/app/core/
 │   ├── src/app/features/
+│   │   └── authorized-people/
 │   ├── src/app/layout/
 │   └── src/app/shared/
 └── backend/
@@ -74,17 +78,20 @@ unicidad evento-alumno, y las respuestas se registran mediante una actualizació
 atómica de solicitudes pendientes para conservar la primera respuesta válida.
 El frontend obtiene los cursos demo mediante `GET /api/courses`.
 La descripción completa está en
-[docs/architecture.md](docs/architecture.md).
+[docs/architecture.md](docs/architecture.md). Los contratos de la nueva
+funcionalidad están en
+[specs/gestion-personas-autorizadas.md](specs/gestion-personas-autorizadas.md).
 
 ## Estado actual
 
 Fase 4 de Spec Driven Development: backend Go y frontend Angular implementados
 y validados. El frontend consume datos reales del backend; no contiene datos
-inventados para las vistas principales.
+inventados para las vistas principales. PA-001 incluye listado y búsqueda de
+estudiantes, ficha, consulta y CRUD de personas autorizadas.
 
-El proyecto está preparado para ejecutarse localmente. Esta entrega contiene el
-código fuente, las pruebas y la documentación del MVP; no incluye despliegue
-en producción ni configuración de hosting.
+El proyecto está preparado para ejecutarse localmente y contiene configuración
+base para un despliegue posterior en Vercel y Render. Esta entrega no crea
+servicios ni publica la aplicación.
 
 ## Requisitos previos
 
@@ -118,10 +125,59 @@ npm start
 La aplicación estará disponible en `http://localhost:4200`. El backend debe
 estar ejecutándose para que dashboard, eventos y portal consulten datos reales.
 
+## Preparación de despliegue
+
+### Backend en Render
+
+El archivo [render.yaml](render.yaml) define un Web Service Go con:
+
+- `rootDir: backend`.
+- Build: `go build -o bin/aulaviva ./cmd/api`.
+- Start: `./bin/aulaviva`.
+- SQLite en `/var/data/aulaviva.db`.
+- Persistent Disk montado en `/var/data`.
+
+El Persistent Disk requiere un Web Service con plan de cómputo pago. La
+configuración usa `plan: starter`; Render muestra actualmente ese plan desde
+`$7/mes`, sujeto a cambios del proveedor. El disco se cobra aparte, actualmente
+`$0.25 por GB/mes`. No se debe crear el servicio ni contratar el plan sin
+revisar los precios vigentes en la cuenta.
+
+Variables requeridas en Render:
+
+```text
+AULAVIVA_DB_PATH=/var/data/aulaviva.db
+AULAVIVA_ALLOWED_ORIGIN=https://<dominio-de-vercel>
+```
+
+Render inyecta `PORT`; el backend lo prioriza sobre `AULAVIVA_PORT`.
+
+### Frontend en Vercel
+
+Configura el proyecto con:
+
+```text
+Root Directory: frontend
+Install Command: npm ci
+Build Command: npm run build
+Output Directory: dist/aulaviva
+```
+
+Antes del primer build de producción, reemplaza
+`REPLACE_WITH_RENDER_API_HOST` en
+`frontend/src/environments/environment.production.ts` por el hostname real
+del servicio Render. El archivo [vercel.json](frontend/vercel.json) redirige
+las rutas de Angular a `index.html` para permitir recargas en rutas internas.
+
+La aplicación no implementa autenticación. Antes de utilizar datos reales,
+debe añadirse una protección administrativa; CORS no reemplaza autenticación.
+La demo pública debe utilizar únicamente datos ficticios.
+
 ## Documentación SDD
 
 - [AGENTS.md](AGENTS.md): contexto persistente y convenciones.
 - [Especificación funcional](specs/gestion-autorizaciones.md).
+- [SPEC PA-001](specs/gestion-personas-autorizadas.md).
 - [Arquitectura](docs/architecture.md).
 - [Skill de diseño de marca](.github/skills/brand-design/SKILL.md).
 - [Documentación del backend](backend/README.md).

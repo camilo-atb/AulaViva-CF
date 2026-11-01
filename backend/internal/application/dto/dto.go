@@ -30,3 +30,16 @@ type RequestResponse struct {
 type SubmitResponseInput struct {
 	Status entities.AuthorizationStatus `json:"status"`
 }
+
+type AuthorizedPersonInput struct {
+	FullName       string                `json:"fullName"`
+	DocumentType   entities.DocumentType `json:"documentType"`
+	DocumentNumber string                `json:"documentNumber"`
+	Relationship   string                `json:"relationship"`
+	Phone          string                `json:"phone"`
+}
+
+type StudentResponse struct {
+	entities.Student
+	AuthorizedPeople []entities.AuthorizedPerson `json:"authorizedPeople"`
+}

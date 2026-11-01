@@ -22,6 +22,14 @@ export const appRoutes: Routes = [
       {
         path: 'events',
         loadComponent: () => import('./features/events/events-list.component').then((m) => m.EventsListComponent)
+      },
+      {
+        path: 'students/:id',
+        loadComponent: () => import('./features/authorized-people/student-detail.component').then((m) => m.StudentDetailComponent)
+      },
+      {
+        path: 'students',
+        loadComponent: () => import('./features/authorized-people/student-list.component').then((m) => m.StudentListComponent)
       }
     ]
   },
