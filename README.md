@@ -160,14 +160,14 @@ Configura el proyecto con:
 Root Directory: frontend
 Install Command: npm ci
 Build Command: npm run build
-Output Directory: dist/aulaviva
+Output Directory: dist/aulaviva/browser
 ```
 
-Antes del primer build de producción, reemplaza
-`REPLACE_WITH_RENDER_API_HOST` en
-`frontend/src/environments/environment.production.ts` por el hostname real
-del servicio Render. El archivo [vercel.json](frontend/vercel.json) redirige
-las rutas de Angular a `index.html` para permitir recargas en rutas internas.
+La configuración de producción apunta a
+`https://aulaviva-cf.onrender.com/api`. Angular 18 genera el archivo
+`index.html` dentro de `dist/aulaviva/browser`; el archivo
+[vercel.json](frontend/vercel.json) publica ese directorio y redirige las rutas
+de Angular a `index.html` para permitir recargas en rutas internas.
 
 La aplicación no implementa autenticación. Antes de utilizar datos reales,
 debe añadirse una protección administrativa; CORS no reemplaza autenticación.
