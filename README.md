@@ -141,7 +141,7 @@ Variables requeridas en Render:
 
 ```text
 AULAVIVA_DB_PATH=aulaviva.db
-AULAVIVA_ALLOWED_ORIGIN=https://<dominio-de-vercel>
+AULAVIVA_ALLOWED_ORIGIN=https://aula-viva-cf.vercel.app
 ```
 
 Render inyecta `PORT`; el backend lo prioriza sobre `AULAVIVA_PORT`.

@@ -30,6 +30,9 @@ PORT                   Puerto priorizado por proveedores como Render
 AULAVIVA_ALLOWED_ORIGIN Origen permitido por CORS
 ```
 
+En Render, `AULAVIVA_ALLOWED_ORIGIN` debe ser exactamente
+`https://aula-viva-cf.vercel.app`, sin una barra final.
+
 En Render gratuito puede usarse `AULAVIVA_DB_PATH=aulaviva.db`, pero el
 filesystem no es persistente: la base puede perderse al reiniciar o desplegar
 el servicio. Esta configuración solo es adecuada para una demostración
